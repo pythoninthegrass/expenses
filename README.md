@@ -1,12 +1,12 @@
 Expenses
 ========
 
-Expenses is a tiny expense tracker written in Python. You use it thus:
+Expenses is a tiny expense tracker written in Python.
 
 ```
-    expenses add 3.10 "Cappuccino at Dark Horse"
-    expenses summary
-    expenses plot
+expenses add 3.10 "Cappuccino at Dark Horse"
+expenses summary
+expenses plot
 ```
 
 Features
@@ -16,23 +16,43 @@ Features
 - Keeps a full version history of expenses in case of user error
 - Supports basic reports and plotting of expenses
 
-Why Expenses
-------------
-
-If you're like me, you want to keep track of your expenses in a very light-weight fashion. You'll
-never track them if you need to wait for a spreadsheet program to open and then nagivate to a particular
-cell. Also you have a shortcut for opening the terminal on your computer so a simple command-line interface
-is exactly what you need for your expenses.
-
-How do I use Expenses?
+Setup
 ----------------
-
-Expenses itself is contained in a single executable. Put that in your PATH somewhere.
-It does have the following dependencies:
-
-- Python 2.7+
-- Mercurial (This is used to keep your expenses versioned in case you screw them up)
+Expenses itself is contained in a single executable. Put that in your PATH somewhere. Dependencies:
+- Python 3.9+
 - Matplotlib (If you want to use the plot feature)
+- Github CLI (`gh`)
+
+## Python and dependencies
+* Install (OS)
+  * [brew](https://brew.sh/)
+  * python3.9: `brew update && brew install python3`
+  * [pip](https://pip.pypa.io/en/stable/installing/): `python get-pip.py`
+  * [pipenv](https://pipenv.pypa.io/en/latest/): `pip install --user pipenv`
+* ENV vars
+  * To run script within `pipenv`, need to set [environment variables](https://github.com/odemeniuk/playwright-py/actions/runs/192428516/workflow)
+    ```bash
+    export VENV_HOME_DIR=$(pipenv --venv)
+    source $VENV_HOME_DIR/bin/activate
+    export PYTHONPATH="$PYTHONPATH:."
+    ```
+* Install (libraries)
+  ```bash
+  pipenv install --python 3.9 matplotlib python-decouple
+  ```
+
+## Install gh
+```bash
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg
+| sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyring
+s/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" |
+sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+```
+Usage
+----------------
 
 When you type "expenses" on the command-line for the first time, a new Expenses setup
 is created at `~/.expenses/`. This includes a mercurial repository at `~/.expenses/repo`
@@ -42,24 +62,9 @@ You probably won't need to work with that file directly, you can use the `expens
 command to view it, and the `expenses edit` command to edit it. By using those commands
 you ensure that it stays properly versioned.
 
-Does Expenses work on Windows?
-------------------------
-
-Maybe.
-
-Using [Cygwin](http://www.cygwin.com/) it should probably work. I'm not really
-sure, as I don't have a Windows machine to try it on. The only real obstacle to
-Windows at the moment is the location to use for the Expenses data folder: on
-UNIX systems I use $HOME/.expenses. If anyone wants to make it pick a
-reasonable spot on Windows I will happily accept your patch.
-
-Is Expenses exactly the same as PEM?
------------------------------
-
-They're very similar.
-
-PEM is the [GNU Personal Expense Manager](http://www.gnu.org/software/pem/). It also takes
-the minimalist approach and uses a CSV datastore. I wrote this before I knew
-that PEM existed, however Expenses has some upsides: its versioning and plotting features do not exist in PEM.
-Also I like the pure-python aspect of Expenses.
-
+TODO
+----------------
+* Copy/pasta Linux pipenv/pyenv instructions from another castle
+* Remove mercurial
+* Implement `gh` via subprocess
+* **Usage**: wrapper for pipenv and/or package w/Poetry

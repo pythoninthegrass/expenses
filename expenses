@@ -3,7 +3,8 @@
 # SOURCES:
 # https://github.com/wxs/Expenses
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from decouple import AutoConfig
 import sys
 import os
 import subprocess
@@ -20,6 +21,22 @@ EXPENSES_DIR = os.path.join(HOME, ".expenses")
 REPO_DIR = os.path.join(EXPENSES_DIR, 'repo')
 EXPENSES_FILE=os.path.join(REPO_DIR, "expenses.csv")
 CAT_FILE = os.path.join(EXPENSES_DIR, 'cats.json')
+NOW = datetime.now()
+ENV = os.getcwd() + '/.env'
+RES_OUT = f"{home}/Downloads/result_{NOW:%Y%m%d_%H%M}.csv"
+ERR_OUT = f"{home}/Downloads/error_{NOW:%Y%m%d_%H%M}.csv"
+
+# creds
+"""
+Checks working directory for .env file.
+.env file contains base64 encoded user
+and password of JSS service account.
+"""
+config = AutoConfig(os.getcwd())
+if os.path.exists(ENV):
+    GITHUB_TOKEN = config('GITHUB_TOKEN')
+else:
+    GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 EDITOR=os.getenv("EDITOR")
 if not EDITOR:
