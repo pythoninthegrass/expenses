@@ -1,26 +1,8 @@
-#!/usr/bin/env python
-"""
-Copyright (c) 2010 Xavier Snelgrove
+#!/usr/bin/env python3
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+# SOURCES:
+# https://github.com/wxs/Expenses
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-"""
 from datetime import date, timedelta
 import sys
 import os
@@ -28,10 +10,10 @@ import subprocess
 import argparse
 import json
 from collections import defaultdict
-from mercurial import ui, hg, commands, error
+# from mercurial import ui, hg, commands, error
 from random import random
 
-VERSION="0.1"
+VERSION="0.2"
 
 HOME = os.getenv("HOME")
 EXPENSES_DIR = os.path.join(HOME, ".expenses")
@@ -76,14 +58,15 @@ def commitafter(msg):
     def deco(f):
         def _inner(*args, **kwargs):
             if f(*args, **kwargs):
-                print "Committing change"
+                print("Committing change")
                 try:
                     commands.commit(ui.ui(), repo, message=msg)
-                except error.Abort as (e):
-                    print "Warning mercurial returned the following error: \"%s\"" % e
+                except error.Abort as xxx_todo_changeme:
+                    (e) = xxx_todo_changeme
+                    print("Warning mercurial returned the following error: \"%s\"" % e)
                 return True
             else:
-                print "Reverting change"
+                print("Reverting change")
                 commands.update(ui.ui(), repo, "tip", clean=True)
                 return False
         return _inner
@@ -91,9 +74,9 @@ def commitafter(msg):
 
 
 def print_usage():
-    usage_strings = ["{0} {1}".format(sys.argv[0], usage) for k, usage in usages.iteritems()]
-    print "USAGE: {0}".format(usage_strings[0])
-    print "\n".join(["       {0}".format(s) for s in usage_strings[1:]])
+    usage_strings = ["{0} {1}".format(sys.argv[0], usage) for k, usage in usages.items()]
+    print("USAGE: {0}".format(usage_strings[0]))
+    print("\n".join(["       {0}".format(s) for s in usage_strings[1:]]))
 
 class Entry(object):
     def __init__(self, entry_date=None, amount=None, message=None, string=None):
@@ -113,14 +96,14 @@ class Entry(object):
         """ What categories does this Entry fall under?"""
         r = [cat for cat,words in all_cats if any(word.lower() in self.message.lower() for word in words)]
         if len(r)>1:
-            print "Entry \"{0}\" on date {1} falls under the following categories: {2}".format(self.message, self.date, r)
+            print("Entry \"{0}\" on date {1} falls under the following categories: {2}".format(self.message, self.date, r))
         if len(r) == 0:
-            print "No cats for {0}".format(self.message)
+            print("No cats for {0}".format(self.message))
         return r
 
     def __str__(self):
         return "{0}, {1:.2f}, {2}".format(self.date.isoformat(), self.amount, self.message)
-        
+
 def parse_entries(f, fromdate=None, todate=None):
     try:
         entries = [Entry(string=line) for i, line in enumerate(f) if line.lstrip()[0] != "#"]
@@ -130,8 +113,8 @@ def parse_entries(f, fromdate=None, todate=None):
             entries = [e for e in entries if e.date <= todate]
         return entries
     except ValueError:
-        print "Invalid expenses file, line:{0}".format(i+1)
-        print line
+        print("Invalid expenses file, line:{0}".format(i+1))
+        print(line)
         return None
 
 def parse_cats(f):
@@ -147,7 +130,7 @@ def parse_date(s):
         return date(*(int(n) for n in s.split('-')))
     except ValueError:
         raise ValueError("String {0} not a valid ISO date".format(s))
-        
+
 #################################################
 #  Command-line-interface function definitions  #
 #################################################
@@ -178,7 +161,7 @@ def cli_list(argv):
     args = parser.parse_args(argv)
     entries = parse_entries(open(EXPENSES_FILE), fromdate=args.fromdate, todate=args.todate)
     for entry in sorted(entries, key=str):
-        print entry
+        print(entry)
     return True
 
 @cli('edit', 'edit')
@@ -186,7 +169,7 @@ def cli_list(argv):
 def edit(args):
     rc = subprocess.call([EDITOR, EXPENSES_FILE])
     if rc != 0:
-        print "Editing file failed"
+        print("Editing file failed")
         return False
     if parse_entries(open(EXPENSES_FILE)) is None:
         return False
@@ -196,7 +179,7 @@ def edit(args):
 def cli_cats(args):
     rc = subprocess.call([EDITOR, CAT_FILE])
     if rc != 0:
-        print "Editing cat file failed"
+        print("Editing cat file failed")
         return False
     else:
         return True
@@ -212,7 +195,7 @@ def summary(argv):
     if entries is None:
         return False
     if len(entries) == 0:
-        print "No data to summarize!"
+        print("No data to summarize!")
         return True
 
     from_date = args.fromdate if args.fromdate else min(entry.date for entry in entries)
@@ -231,19 +214,19 @@ def summary(argv):
         median = (days[len(days)//2-1]+days[len(days)//2])/2
     else:
         median = days[len(days)//2]
-    print "Report from {0} to {1}".format(from_date, to_date)
-    print "Total spent: ${0:.2f}".format(total_spent)
-    print "Mean per day: ${0:.2f} (*30 = ${1:.2f})".format(mean_all, mean_all*30)
-    print "Median per day: ${0:.2f}".format(median)
-    print "Mean per day on days with non-zero spending: ${0:.2f} (*30 = ${1:.2f})".format(mean_some, mean_some*30)
+    print("Report from {0} to {1}".format(from_date, to_date))
+    print("Total spent: ${0:.2f}".format(total_spent))
+    print("Mean per day: ${0:.2f} (*30 = ${1:.2f})".format(mean_all, mean_all*30))
+    print("Median per day: ${0:.2f}".format(median))
+    print("Mean per day on days with non-zero spending: ${0:.2f} (*30 = ${1:.2f})".format(mean_some, mean_some*30))
     return True
-    
+
 
 @cli('plot', 'plot')
 def plot(argv):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
-    
+
     parser = argparse.ArgumentParser(prog="{0} plot".format(sys.argv[0]))
     parser.add_argument('--fromdate', type=parse_date)
     parser.add_argument('--todate', type=parse_date)
@@ -259,11 +242,11 @@ def plot(argv):
     entries = parse_entries(open(EXPENSES_FILE), fromdate=args.fromdate, todate=args.todate)
     fromdate = args.from_date if args.fromdate is not None else min(e.date for e in entries)
     todate = args.to_date if args.todate is not None else max(e.date for e in entries)
-        
+
     if entries is None:
         return False
     if len(entries) == 0:
-        print "No entries to plot!"
+        print("No entries to plot!")
         return True
 
     all_cats=parse_cats(open(CAT_FILE))
@@ -287,7 +270,7 @@ def plot(argv):
 
     prevheights=[0]*len(dates)
     bars = {}
-    sorted_cats = sorted(cat_entries.items(), key=lambda x:sum(e.amount for e in x[1]), reverse=True)
+    sorted_cats = sorted(list(cat_entries.items()), key=lambda x:sum(e.amount for e in x[1]), reverse=True)
     for i, c in enumerate(sorted_cats):
         k,v = c
         heights = [sum(e.amount for e in v if e.date == date) for date in dates]
@@ -295,15 +278,15 @@ def plot(argv):
                 color=colours[i] if i < len(colours) else (random(), random(), random()),
                 linewidth=0)
         prevheights = [sum(e) for e in zip(heights, prevheights)]
-    sorted_bars = sorted(bars.items(), key=lambda x:sum(e.amount for e in cat_entries[x[0]]))
-    
-    fig.legend(*zip(*[(bar[0], cat) for cat, bar in bars.items()]))
+    sorted_bars = sorted(list(bars.items()), key=lambda x:sum(e.amount for e in cat_entries[x[0]]))
+
+    fig.legend(*list(zip(*[(bar[0], cat) for cat, bar in list(bars.items())])))
 
     #ax.bar([k for k in sorted(dates.keys())],
         #[dates[k] for k in sorted(dates.keys())],
         #color="#809860")
     fig.autofmt_xdate()
-    
+
     plt.show()
     return True
     #plt.plot((date(*k.split("-")) for k in sorted(dates.keys())),
@@ -316,16 +299,17 @@ def init_dir():
     try:
         os.mkdir(EXPENSES_DIR)
         os.mkdir(REPO_DIR)
-    except OSError, e:
-        print e
+    except OSError as e:
+        print(e)
         return False
     with open(EXPENSES_FILE, 'w') as f:
         f.write("# Version: {0}\n".format(VERSION))
     repo = hg.repository(ui.ui(), REPO_DIR, create=True)
     try:
         commands.commit(ui.ui(), repo, EXPENSES_FILE, message="Initialized new expenses file", addremove=True)
-    except error.Abort as (e):
-        print "Warning mercurial returned the following error: \"%s\"" % e
+    except error.Abort as xxx_todo_changeme1:
+        (e) = xxx_todo_changeme1
+        print("Warning mercurial returned the following error: \"%s\"" % e)
 
     return True
 
